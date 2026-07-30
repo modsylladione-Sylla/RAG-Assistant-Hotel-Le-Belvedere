@@ -1,4 +1,3 @@
-# Barre latérale
 import streamlit as st
 import time
 import numpy as np
@@ -33,7 +32,13 @@ with st.sidebar:
 def load_documentation():
     """Charger et préparer la documentation"""
     
-    # 1. Lire les PDF
+    # Récupérer le chemin absolu du dossier où se trouve le script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Les PDF sont dans le même dossier que apps.py (copiés à la racine du dépôt)
+    data_dir = script_dir
+    
+    # Liste des fichiers PDF
     pdf_files = [
         "activites_et_evenements.pdf",
         "chambres_et_tarifs.pdf",
@@ -44,7 +49,10 @@ def load_documentation():
     
     documents = []
     for fichier in pdf_files:
-        chemin = os.path.join("Projet_04", "data", fichier)
+        chemin = os.path.join(data_dir, fichier)
+        if not os.path.exists(chemin):
+            st.warning(f"⚠️ Fichier introuvable : {chemin}")
+            continue
         try:
             with pdfplumber.open(chemin) as pdf:
                 texte = "".join(page.extract_text() or "" for page in pdf.pages)
@@ -55,6 +63,15 @@ def load_documentation():
                 })
         except Exception as e:
             st.warning(f"⚠️ Erreur lors du chargement de {fichier}: {e}")
+    
+    # Fallback si aucun document n'est chargé
+    if not documents:
+        st.error("❌ Aucun document chargé. Vérifiez les fichiers PDF.")
+        documents = [{
+            "source": "fallback.txt",
+            "texte": "Hôtel Le Belvédère. Check-in à 15h. Wifi gratuit. Chambre Classique 120€.",
+            "title": "Simulation"
+        }]
     
     # 2. Créer le DataFrame
     pages = pd.DataFrame(documents)
