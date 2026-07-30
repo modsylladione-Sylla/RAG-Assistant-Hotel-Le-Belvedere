@@ -44,7 +44,7 @@ def load_documentation():
     
     documents = []
     for fichier in pdf_files:
-        chemin = os.path.join("data", fichier)
+        chemin = os.path.join("Projet_04", "data", fichier)
         try:
             with pdfplumber.open(chemin) as pdf:
                 texte = "".join(page.extract_text() or "" for page in pdf.pages)
