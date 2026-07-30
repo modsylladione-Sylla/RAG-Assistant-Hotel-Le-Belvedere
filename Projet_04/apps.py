@@ -42,19 +42,19 @@ def load_documentation():
         "restaurant_et_bien_etre.pdf"
     ]
     
-    documents = []
-    for fichier in pdf_files:
-        chemin = os.path.join("data", fichier)
-        try:
-           with pdfplumber.open(chemin) as pdf:
-           texte = "".join(page.extract_text() or "" for page in pdf.pages)
+   documents = []
+   for fichier in pdf_files:
+    chemin = os.path.join("data", fichier)
+    try:
+        with pdfplumber.open(chemin) as pdf:
+            texte = "".join(page.extract_text() or "" for page in pdf.pages)  # ✅ Indenté (4 espaces)
             documents.append({
                 "source": fichier,
                 "texte": texte,
                 "title": fichier.replace(".pdf", "").replace("_", " ").title()
             })
-        except Exception as e:
-            st.warning(f"⚠️ Erreur lors du chargement de {fichier}: {e}")
+    except Exception as e:
+        st.warning(f"⚠️ Erreur lors du chargement de {fichier}: {e}")
     
     # 2. Créer le DataFrame
     pages = pd.DataFrame(documents)
