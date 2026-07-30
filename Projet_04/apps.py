@@ -2,7 +2,7 @@ import streamlit as st
 import time
 import numpy as np
 import pandas as pd
-from pypdf import PdfReader
+import pdfplumber
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 import os
@@ -46,10 +46,8 @@ def load_documentation():
     for fichier in pdf_files:
         chemin = os.path.join("data", fichier)
         try:
-            reader = PdfReader(chemin)
-            texte = ""
-            for page in reader.pages:
-                texte += page.extract_text()
+           with pdfplumber.open(chemin) as pdf:
+           texte = "".join(page.extract_text() or "" for page in pdf.pages)
             documents.append({
                 "source": fichier,
                 "texte": texte,
