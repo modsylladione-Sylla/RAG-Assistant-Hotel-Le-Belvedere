@@ -1,11 +1,12 @@
+# Barre latérale
 import streamlit as st
 import time
 import numpy as np
 import pandas as pd
 import pdfplumber
+import os
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
-import os
 
 # Configuration de la page
 st.set_page_config(
@@ -23,7 +24,6 @@ with st.sidebar:
     st.markdown("---")
     st.info("L'assistant répond aux questions sur l'hôtel en s'appuyant sur sa documentation officielle.")
     
-    # Bouton pour recharger
     if st.button("🔄 Recharger la documentation"):
         st.cache_data.clear()
         st.success("✅ Documentation rechargée !")
@@ -42,19 +42,19 @@ def load_documentation():
         "restaurant_et_bien_etre.pdf"
     ]
     
-   documents = []
-   for fichier in pdf_files:
-    chemin = os.path.join("data", fichier)
-    try:
-        with pdfplumber.open(chemin) as pdf:
-            texte = "".join(page.extract_text() or "" for page in pdf.pages)  # ✅ Indenté (4 espaces)
-            documents.append({
-                "source": fichier,
-                "texte": texte,
-                "title": fichier.replace(".pdf", "").replace("_", " ").title()
-            })
-    except Exception as e:
-        st.warning(f"⚠️ Erreur lors du chargement de {fichier}: {e}")
+    documents = []
+    for fichier in pdf_files:
+        chemin = os.path.join("data", fichier)
+        try:
+            with pdfplumber.open(chemin) as pdf:
+                texte = "".join(page.extract_text() or "" for page in pdf.pages)
+                documents.append({
+                    "source": fichier,
+                    "texte": texte,
+                    "title": fichier.replace(".pdf", "").replace("_", " ").title()
+                })
+        except Exception as e:
+            st.warning(f"⚠️ Erreur lors du chargement de {fichier}: {e}")
     
     # 2. Créer le DataFrame
     pages = pd.DataFrame(documents)
@@ -153,43 +153,30 @@ question = st.text_input(
     key="question_input"
 )
 
-# Bouton pour poser la question
 if st.button("💬 Poser la question", type="primary"):
     if question:
         with st.spinner("🔍 Recherche dans la documentation..."):
             try:
-                # Mesurer le temps
                 start_time = time.time()
-                
-                # Répondre
                 answer, sources = answer_question(
                     question, pages, chunk_embeddings, embedder, generator
                 )
-                
                 elapsed_time = time.time() - start_time
                 
-                # Afficher la réponse
                 st.markdown("---")
                 st.subheader("💬 Réponse")
-                
-                # Créer une colonne pour la réponse
                 col1, col2 = st.columns([3, 1])
-                
                 with col1:
                     st.success(answer)
-                
                 with col2:
                     st.metric("⏱️ Temps", f"{elapsed_time:.1f}s")
                 
-                # Afficher les sources
                 st.subheader("📚 Sources")
                 for i, row in sources.iterrows():
                     st.info(f"📄 **{row['title']}** (score: {row['score']:.3f})")
-                    
-                    # Afficher un extrait du texte
                     with st.expander(f"Afficher l'extrait de {row['title']}"):
                         st.text(row['texte'][:500] + "...")
-                
+                        
             except Exception as e:
                 st.error(f"❌ Erreur : {e}")
     else:
@@ -210,6 +197,5 @@ with st.expander("ℹ️ Informations sur l'assistant"):
     - LLM : `Qwen/Qwen2.5-0.5B-Instruct`
     """)
 
-# --- FOOTER ---
 st.markdown("---")
 st.caption("Projet réalisé avec ❤️ | Hôtel Le Belvédère")
